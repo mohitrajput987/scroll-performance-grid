@@ -53,7 +53,7 @@ Each cell is a 32dp × 32dp square with a randomly chosen background color and s
 3. **Cell**
    - Each cell is a lightweight view inflated from XML with:
      - Fixed dimensions (32dp × 32dp).
-     - A `TextView` centered for index display.
+     - A `TextView` centred for index display.
      - Background color set at bind time.
 
 4. **Deletion**
@@ -82,10 +82,10 @@ Each cell is a 32dp × 32dp square with a randomly chosen background color and s
 ## Build & Run
 
 1. Clone the repository:
-   ```bash
+   ```
    git clone https://github.com/mohitrajput987/scroll-performance-grid.git
    cd scroll-performance-grid
-````
+   ```
 
 2. Open the project in **Android Studio** (Arctic Fox / Bumblebee or newer recommended, but project compiles with Android Gradle Plugin compatible with API 24).
 
@@ -128,13 +128,8 @@ If you want to reproduce the performance measurements:
 
 ## Notes, caveats & future improvements
 
-* Current implementation focuses on CPU / UI thread efficiency. If using images or heavier content inside cells, consider:
-
-    * Lazy/image decoding off the main thread,
-    * Object pooling for temporary objects,
-    * Paging the data to avoid huge upfront allocation.
-* Alternative layout strategies could pack the entire grid into a single custom `LayoutManager` (advanced) for even tighter control and possibly higher throughput; current approach is chosen for clarity and modularity.
-* If you want to experiment with more advanced optimizations (single-pass layout, custom view reuse), see TODOs in the code comments.
+* Paging the data to avoid huge upfront allocation.
+* Alternative layout strategies could pack the entire grid into a single custom `LayoutManager` (advanced) for even tighter control and possibly higher throughput; the current approach is chosen for clarity and modularity.
 
 ---
 
@@ -147,5 +142,6 @@ This project is provided as-is for demonstration and benchmarking purposes.
 ### Author
 
 Mohit Rajput
+Blogs: [https://medium.com/p/a2b8755da2bb](https://medium.com/p/a2b8755da2bb)
 GitHub: [https://github.com/mohitrajput987](https://github.com/mohitrajput987)
 Email: [mohitrajput987@gmail.com](mailto:mohitrajput987@gmail.com)
