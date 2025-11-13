@@ -23,9 +23,14 @@ Each cell is a 32dp × 32dp square with a randomly chosen background color and s
 
 📹 **Demo video** (shows app behavior and interactions):  
 
+<img width="480" height="852" alt="Screenshot_20251113_173637" src="https://github.com/user-attachments/assets/9f5753bd-8936-4189-bf31-1f17d6786266" />
+
+
+
+
 <video src="https://raw.githubusercontent.com/mohitrajput987/scroll-performance-grid/main/app/src/main/assets/app-performance.mp4" 
        controls 
-       width="600">
+       width="300">
   Your browser does not support the video tag.
 </video>
 
