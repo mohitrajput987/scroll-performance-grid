@@ -4,8 +4,11 @@ import android.graphics.Color
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.otp.scrollperformancegride.data.Row
 import com.otp.scrollperformancegride.data.Square
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 class MainViewModel : ViewModel() {
@@ -27,38 +30,42 @@ class MainViewModel : ViewModel() {
     }
 
     private fun generateRows() {
-        val newRows = mutableListOf<Row>()
-        var squareCount = 0
-        var rowId = 0
-        while (squareCount < TOTAL_SQUARES) {
-            val squaresInRow = Random.nextInt(MIN_SQUARES_PER_ROW, MAX_SQUARES_PER_ROW + 1)
-            val squares = mutableListOf<Square>()
-            repeat(squaresInRow) {
-                if (squareCount < TOTAL_SQUARES) {
-                    squares.add(Square(id = squareCount++, color = getRandomColor()))
+        viewModelScope.launch(Dispatchers.IO) {
+            val newRows = mutableListOf<Row>()
+            var squareCount = 0
+            var rowId = 0
+            while (squareCount < TOTAL_SQUARES) {
+                val squaresInRow = Random.nextInt(MIN_SQUARES_PER_ROW, MAX_SQUARES_PER_ROW + 1)
+                val squares = mutableListOf<Square>()
+                repeat(squaresInRow) {
+                    if (squareCount < TOTAL_SQUARES) {
+                        squares.add(Square(id = squareCount++, color = getRandomColor()))
+                    }
                 }
+                newRows.add(Row(id = rowId++, squares = squares))
             }
-            newRows.add(Row(id = rowId++, squares = squares))
+            _rows.postValue(newRows)
         }
-        _rows.value = newRows
     }
 
     fun removeSquare(row: Row, square: Square) {
-        val currentRows = _rows.value ?: return
-        val newRows = currentRows.toMutableList()
-        val rowIndex = newRows.indexOfFirst { it.id == row.id }
-        if (rowIndex == -1) return
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentRows = _rows.value ?: return@launch
+            val newRows = currentRows.toMutableList()
+            val rowIndex = newRows.indexOfFirst { it.id == row.id }
+            if (rowIndex == -1) return@launch
 
-        val oldRow = newRows[rowIndex]
-        val newSquares = oldRow.squares.toMutableList()
-        newSquares.remove(square)
+            val oldRow = newRows[rowIndex]
+            val newSquares = oldRow.squares.toMutableList()
+            newSquares.remove(square)
 
-        if (newSquares.isEmpty()) {
-            newRows.removeAt(rowIndex)
-        } else {
-            newRows[rowIndex] = oldRow.copy(squares = newSquares)
+            if (newSquares.isEmpty()) {
+                newRows.removeAt(rowIndex)
+            } else {
+                newRows[rowIndex] = oldRow.copy(squares = newSquares)
+            }
+            _rows.postValue(newRows)
         }
-        _rows.value = newRows
     }
 
     private fun getRandomColor(): Int {
