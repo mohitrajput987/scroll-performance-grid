@@ -23,17 +23,19 @@ Each cell is a 32dp × 32dp square with a randomly chosen background color and s
 
 📹 **Demo video** (shows app behavior and interactions):  
 
-<video src="./assets/app-recording.webm" controls width="600">
+<video src="https://raw.githubusercontent.com/mohitrajput987/scroll-performance-grid/main/app/src/main/assets/app-performance.mp4" 
+       controls 
+       width="600">
   Your browser does not support the video tag.
 </video>
+
 
 ---
 
 ## Performance & Profiler Screenshots
 
 📈 **Profiler screenshots** (showing frame times, CPU/memory, overdraw):  
-
-
+<img src="https://github.com/mohitrajput987/scroll-performance-grid/blob/main/app/src/main/assets/profiler.png">
 ---
 
 ## How it works — high level
