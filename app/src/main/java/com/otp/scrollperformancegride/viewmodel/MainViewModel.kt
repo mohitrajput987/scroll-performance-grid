@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.otp.scrollperformancegride.data.Row
 import com.otp.scrollperformancegride.data.Square
+import com.otp.scrollperformancegride.util.Event
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -20,18 +21,25 @@ class MainViewModel : ViewModel() {
         private const val COLOR_COMPONENT_RANGE = 256
     }
 
-    private val _rows = MutableLiveData<MutableList<Row>>()
-    val rows: LiveData<MutableList<Row>> = _rows
+    val rows = mutableListOf<Row>()
+
+    private val _onSquareRemoved = MutableLiveData<Event<Pair<Int, Int>>>()
+    val onSquareRemoved: LiveData<Event<Pair<Int, Int>>> = _onSquareRemoved
+
+    private val _onRowRemoved = MutableLiveData<Event<Int>>()
+    val onRowRemoved: LiveData<Event<Int>> = _onRowRemoved
+
+    private val _onDataGenerated = MutableLiveData<Event<Unit>>()
+    val onDataGenerated: LiveData<Event<Unit>> = _onDataGenerated
 
     init {
-        if (_rows.value == null) {
+        if (rows.isEmpty()) {
             generateRows()
         }
     }
 
     private fun generateRows() {
         viewModelScope.launch(Dispatchers.IO) {
-            val newRows = mutableListOf<Row>()
             var squareCount = 0
             var rowId = 0
             while (squareCount < TOTAL_SQUARES) {
@@ -42,29 +50,25 @@ class MainViewModel : ViewModel() {
                         squares.add(Square(id = squareCount++, color = getRandomColor()))
                     }
                 }
-                newRows.add(Row(id = rowId++, squares = squares))
+                rows.add(Row(rowId++, squares))
             }
-            _rows.postValue(newRows)
+            _onDataGenerated.postValue(Event(Unit))
         }
     }
 
-    fun removeSquare(row: Row, square: Square) {
+    fun removeSquare(rowIndex: Int, squareIndex: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            val currentRows = _rows.value ?: return@launch
-            val newRows = currentRows.toMutableList()
-            val rowIndex = newRows.indexOfFirst { it.id == row.id }
-            if (rowIndex == -1) return@launch
+            if (rowIndex < 0 || rowIndex >= rows.size) return@launch
+            val row = rows[rowIndex]
+            if (squareIndex < 0 || squareIndex >= row.squares.size) return@launch
 
-            val oldRow = newRows[rowIndex]
-            val newSquares = oldRow.squares.toMutableList()
-            newSquares.remove(square)
+            row.squares.removeAt(squareIndex)
+            _onSquareRemoved.postValue(Event(Pair(rowIndex, squareIndex)))
 
-            if (newSquares.isEmpty()) {
-                newRows.removeAt(rowIndex)
-            } else {
-                newRows[rowIndex] = oldRow.copy(squares = newSquares)
+            if (row.squares.isEmpty()) {
+                rows.removeAt(rowIndex)
+                _onRowRemoved.postValue(Event(rowIndex))
             }
-            _rows.postValue(newRows)
         }
     }
 

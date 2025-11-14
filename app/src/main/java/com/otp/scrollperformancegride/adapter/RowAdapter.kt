@@ -2,57 +2,51 @@ package com.otp.scrollperformancegride.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.otp.scrollperformancegride.data.Row
-import com.otp.scrollperformancegride.data.Square
 import com.otp.scrollperformancegride.databinding.RowItemBinding
 
 class RowAdapter(
-    private val onSquareClick: (Row, Square) -> Unit
-) : ListAdapter<Row, RowAdapter.RowViewHolder>(RowDiffCallback()) {
+    private val rows: List<Row>,
+    private val onSquareClick: (rowIndex: Int, squareIndex: Int) -> Unit
+) : RecyclerView.Adapter<RowAdapter.RowViewHolder>() {
+    private val recycledViewPool = RecyclerView.RecycledViewPool()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RowViewHolder {
         val binding = RowItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return RowViewHolder(binding, onSquareClick)
+        return RowViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: RowViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(rows[position])
     }
 
-    inner class RowViewHolder(
-        binding: RowItemBinding,
-        private val onSquareClick: (Row, Square) -> Unit
-    ) : RecyclerView.ViewHolder(binding.root) {
-
-        private val squareAdapter = SquareAdapter { square ->
-            val row = getItem(bindingAdapterPosition)
-            onSquareClick(row, square)
+    override fun onBindViewHolder(holder: RowViewHolder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isNotEmpty()) {
+            val squareIndex = payloads[0] as Int
+            holder.squareAdapter.notifyItemRemoved(squareIndex)
+        } else {
+            super.onBindViewHolder(holder, position, payloads)
         }
+    }
+
+    override fun getItemCount(): Int = rows.size
+
+    inner class RowViewHolder(private val binding: RowItemBinding) : RecyclerView.ViewHolder(binding.root) {
+
+        lateinit var squareAdapter: SquareAdapter
 
         init {
-            binding.squareRecyclerView.apply {
-                layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-                adapter = squareAdapter
-                setRecycledViewPool(RecyclerView.RecycledViewPool())
-            }
+            binding.squareRecyclerView.setRecycledViewPool(recycledViewPool)
+            binding.squareRecyclerView.layoutManager = LinearLayoutManager(binding.root.context, LinearLayoutManager.HORIZONTAL, false)
         }
 
         fun bind(row: Row) {
-            squareAdapter.submitList(row.squares.toList())
-        }
-    }
-
-    private class RowDiffCallback : DiffUtil.ItemCallback<Row>() {
-        override fun areItemsTheSame(oldItem: Row, newItem: Row): Boolean {
-            return oldItem.id == newItem.id
-        }
-
-        override fun areContentsTheSame(oldItem: Row, newItem: Row): Boolean {
-            return oldItem == newItem
+            squareAdapter = SquareAdapter(row.squares) { squareIndex ->
+                onSquareClick(bindingAdapterPosition, squareIndex)
+            }
+            binding.squareRecyclerView.adapter = squareAdapter
         }
     }
 }

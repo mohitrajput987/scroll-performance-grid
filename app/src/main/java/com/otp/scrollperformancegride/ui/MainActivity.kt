@@ -1,5 +1,6 @@
 package com.otp.scrollperformancegride.ui
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -7,6 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.otp.scrollperformancegride.viewmodel.MainViewModel
 import com.otp.scrollperformancegride.adapter.RowAdapter
 import com.otp.scrollperformancegride.databinding.ActivityMainBinding
+import com.otp.scrollperformancegride.util.EventObserver
 
 class MainActivity : AppCompatActivity() {
 
@@ -20,25 +22,30 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupRecyclerView()
-        observeRows()
-    }
-
-    private fun observeRows() {
-        viewModel.rows.observe(this) { rows ->
-            rowAdapter.submitList(rows.toList())
-        }
+        observeViewModel()
     }
 
     private fun setupRecyclerView() {
-        rowAdapter = RowAdapter { row, square ->
-            viewModel.removeSquare(row, square)
+        rowAdapter = RowAdapter(viewModel.rows) { rowIndex, squareIndex ->
+            viewModel.removeSquare(rowIndex, squareIndex)
         }
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = rowAdapter
-            // Performance optimizations
             setHasFixedSize(true)
-            setItemViewCacheSize(20)
         }
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    private fun observeViewModel() {
+        viewModel.onDataGenerated.observe(this, EventObserver { 
+            rowAdapter.notifyDataSetChanged()
+        })
+        viewModel.onRowRemoved.observe(this, EventObserver { rowIndex ->
+            rowAdapter.notifyItemRemoved(rowIndex)
+        })
+        viewModel.onSquareRemoved.observe(this, EventObserver { (rowIndex, squareIndex) ->
+            rowAdapter.notifyItemChanged(rowIndex, squareIndex)
+        })
     }
 }
