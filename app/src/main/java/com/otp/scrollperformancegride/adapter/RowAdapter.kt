@@ -11,15 +11,10 @@ class RowAdapter(
     private val rows: List<Row>,
     private val onSquareClick: (rowIndex: Int, squareIndex: Int) -> Unit
 ) : RecyclerView.Adapter<RowAdapter.RowViewHolder>() {
-    private val recycledViewPool = RecyclerView.RecycledViewPool()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RowViewHolder {
         val binding = RowItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return RowViewHolder(binding)
-    }
-
-    override fun onBindViewHolder(holder: RowViewHolder, position: Int) {
-        holder.bind(rows[position])
     }
 
     override fun onBindViewHolder(holder: RowViewHolder, position: Int, payloads: MutableList<Any>) {
@@ -31,6 +26,10 @@ class RowAdapter(
         }
     }
 
+    override fun onBindViewHolder(holder: RowViewHolder, position: Int) {
+        holder.bind(rows[position])
+    }
+
     override fun getItemCount(): Int = rows.size
 
     inner class RowViewHolder(private val binding: RowItemBinding) : RecyclerView.ViewHolder(binding.root) {
@@ -38,13 +37,14 @@ class RowAdapter(
         lateinit var squareAdapter: SquareAdapter
 
         init {
-            binding.squareRecyclerView.setRecycledViewPool(recycledViewPool)
             binding.squareRecyclerView.layoutManager = LinearLayoutManager(binding.root.context, LinearLayoutManager.HORIZONTAL, false)
         }
 
         fun bind(row: Row) {
             squareAdapter = SquareAdapter(row.squares) { squareIndex ->
-                onSquareClick(bindingAdapterPosition, squareIndex)
+                if (bindingAdapterPosition != RecyclerView.NO_POSITION) {
+                    onSquareClick(bindingAdapterPosition, squareIndex)
+                }
             }
             binding.squareRecyclerView.adapter = squareAdapter
         }
